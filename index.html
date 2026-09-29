@@ -168,6 +168,8 @@ h2 { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.45re
 .calc-dl dt { color: var(--ink-2); padding: 5px 0; border-top: 1px solid var(--grid); }
 .calc-dl dd { margin: 0; padding: 5px 0; border-top: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .calc-dl dd small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.calc-trend { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--grid); }
+.calc-trend .ctitle { margin-bottom: 4px; }
 .warn { font-size: 0.84rem; color: var(--ink); background: var(--hover); border-radius: 8px; padding: 8px 10px; margin: 10px 0 0; }
 
 /* tables */
@@ -241,11 +243,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
     </div>
 
     <div class="calc-prompt" id="calc-prompt">
-      <span>Gold price calculator: enter a gold price and see how many bonds the CBRT would have to buy to keep gold at its 12-month average share of assets.</span>
+      <span>Gold price calculator: enter a gold price and see how many bonds the CBRT would have to buy or sell to keep securities at their current share of assets.</span>
       <button type="button" class="btn" id="calc-open">Open in the 12-month view</button>
     </div>
     <div class="panel calc" id="calc" hidden>
-      <div class="chead"><h3 class="ctitle">Gold price calculator<span class="cunit" id="calc-cunit">bond purchases needed to hold gold at its 12-month average share</span></h3></div>
+      <div class="chead"><h3 class="ctitle">Gold price calculator<span class="cunit" id="calc-cunit">bond purchases needed to hold securities at their current share</span></h3></div>
       <div class="calc-grid">
         <form class="calc-in" id="calc-form" novalidate>
           <div class="field">
@@ -261,6 +263,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
           <div class="field" id="calc-fx-field">
             <label for="calc-fx">USD/TRY</label>
             <input id="calc-fx" name="calc-fx" type="number" inputmode="decimal" min="0" step="any" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="calc-measure">Securities to keep at their current share</label>
+            <select id="calc-measure" name="calc-measure">
+              <option value="try">TRY government bonds</option>
+              <option value="all">All securities (TRY and foreign-currency)</option>
+            </select>
           </div>
           <div class="field">
             <label id="calc-steps-lab">Change from latest price</label>
@@ -283,6 +292,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
           <dl class="calc-dl" id="calc-dl"></dl>
           <p class="warn" id="calc-warn" hidden></p>
         </div>
+      </div>
+      <div class="calc-trend">
+        <h4 class="ctitle" id="calc-trend-title"></h4>
+        <div id="calc-chart"></div>
       </div>
       <p class="note" id="calc-note"></p>
     </div>
@@ -438,11 +451,12 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
   const mT = M.map((r) => T(r[0]));
   const mT2 = M.map((r) => { const y = +r[0].slice(0, 4), m = +r[0].slice(5, 7); return Date.UTC(y, m, 1); });
   const lastT = sT[sT.length - 1];
-  // the 12-month view and the calculator's target both use the last 52 weekly statements
+  // the 12-month view (and the calculator's trend chart) show the last 52 weekly statements
   const AVG_WEEKS = 52;
-  const avgGold = (denom) => {
-    const a = shares[denom].gold.slice(-AVG_WEEKS);
-    return a.reduce((s, v) => s + v, 0) / a.length;
+  // securities share of assets: TRY government bonds only, or TRY plus foreign-currency securities
+  const secSeries = (denom, measure) => {
+    const d = shares[denom].domsec, f = shares[denom].fxsec;
+    return measure === "all" ? d.map((v, i) => (v == null || f[i] == null ? null : v + f[i])) : d;
   };
 
   const rangeStart = () => ({
@@ -788,7 +802,6 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     domain: () => clampDomain(sT[0], lastT),
     tickFmt: (v) => v + "%", valFmt: (v) => fPct(v),
     annotations: [{ t: "2001-08-17", label: "Securities source switches" }, { t: "2013-01-04", label: "Current statement format" }],
-    refLines: () => (state.range === "1y" ? [{ v: avgGold(state.denom), label: "Gold, 12-month average " + fPct(avgGold(state.denom)) }] : []),
     extra: (i, tip) => tipExtra(tip, "Total assets " + fBn(state.denom === "gross" ? shares.ta[i] : shares.ta[i] - (shares.acct[i] || 0))),
     legend: (i1) => legend("a-legend", A_SERIES.map((s) => ({ ...s, line: true, value: fPct(lastNonNull(shares[state.denom][s.key], i1)) }))),
   });
@@ -997,8 +1010,9 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
 
   // ---------------------------------------------------------------- gold price calculator (12-month view)
   // Scenario: only the gold price changes. The gold on the balance sheet is revalued and total assets move by
-  // the same amount. Bond purchases are paid for with new lira, so total assets grow by the amount bought.
-  // purchases X solve  goldValue / (assets + X) = 12-month average gold share.
+  // the same amount; securities are not revalued. Bond purchases are paid for with new lira, so total assets
+  // grow by the amount bought. Purchases X solve  (securities + X) / (assets + X) = current securities share,
+  // which reduces to  X = share / (1 - share) * change in gold value.
   const OZ = 31.1034768; // grams per troy ounce
   const K = DATA.calc;
   const ce = (id) => document.getElementById(id);
@@ -1006,12 +1020,15 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     panel: ce("calc"), prompt: ce("calc-prompt"), price: ce("calc-price"), unit: ce("calc-unit"), fx: ce("calc-fx"),
     fxField: ce("calc-fx-field"), steps: ce("calc-steps"), hint: ce("calc-hint"), verb: ce("calc-verb"),
     amount: ce("calc-amount"), sub: ce("calc-sub"), dl: ce("calc-dl"), warn: ce("calc-warn"), note: ce("calc-note"), cunit: ce("calc-cunit"),
+    measure: ce("calc-measure"), trendTitle: ce("calc-trend-title"),
   };
-  const calcState = { price: K.usd_oz, unit: "usdoz", fx: K.usdtry };
+  const calcState = { price: K.usd_oz, unit: "usdoz", fx: K.usdtry, measure: "try" };
   try {
     const s = JSON.parse(localStorage.getItem("cbrt-mix-calc") || "null");
     if (s && (s.unit === "usdoz" || s.unit === "tryg") && +s.price > 0 && +s.fx > 0) Object.assign(calcState, { price: +s.price, unit: s.unit, fx: +s.fx });
+    if (s && (s.measure === "try" || s.measure === "all")) calcState.measure = s.measure;
   } catch (e) { /* storage unavailable */ }
+  const secName = (measure) => (measure === "all" ? "all securities" : "TRY government bonds");
   const saveCalc = () => { try { localStorage.setItem("cbrt-mix-calc", JSON.stringify(calcState)); } catch (e) { /* ignore */ } };
   const latestPrice = (unit) => (unit === "usdoz" ? K.usd_oz : K.try_per_g);
   const toTryG = (p, unit, fx) => (unit === "usdoz" ? (p * fx) / OZ : p);
@@ -1022,7 +1039,17 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     cx.unit.value = calcState.unit;
     cx.fx.value = String(calcState.fx);
     cx.fxField.hidden = calcState.unit !== "usdoz";
+    cx.measure.value = calcState.measure;
   };
+  const calcChart = makeChart({
+    host: "calc-chart", kind: "line", aria: "Line chart of the securities share of assets over the last 12 months with its current level",
+    height: (w) => (w < 520 ? 170 : 190),
+    series: [{ key: "s", label: "Share of assets", color: "--s-domsec" }],
+    data: () => ({ t: sT, v: { s: secSeries(state.denom, calcState.measure) } }),
+    domain: () => [sT[sT.length - AVG_WEEKS], lastT],
+    tickFmt: (v) => v + "%", valFmt: (v) => fPct(v, 2),
+    refLines: () => { const s = secSeries(state.denom, calcState.measure); const c = s[s.length - 1]; return [{ v: c, label: "Current level " + fPct(c, 2) }]; },
+  });
   const dlRow = (label, value, note) => {
     const dt = document.createElement("dt"); dt.textContent = label;
     const dd = document.createElement("dd"); dd.textContent = value;
@@ -1038,9 +1065,15 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     const n = S.length - 1;
     const denom = state.denom;
     const denLabel = denom === "gross" ? "gross total assets" : "total assets excluding losses";
-    cx.cunit.textContent = `bond purchases needed to hold gold at its 12-month average share of ${denLabel}`;
-    const target = avgGold(denom) / 100;
+    const measure = calcState.measure;
+    const sName = secName(measure);
+    const SName = sName.charAt(0).toUpperCase() + sName.slice(1);
+    cx.cunit.textContent = `bond purchases needed to hold ${sName} at their current share of ${denLabel}`;
+    cx.trendTitle.textContent = `${SName}, share of ${denLabel}, last ${AVG_WEEKS} weeks`;
     const den = denom === "gross" ? K.ta_bn : K.ta_bn - K.acct_bn;
+    const Ptry = K.portfolio_bn, Pfx = shares.fxBn[n] || 0;
+    const sec = measure === "all" ? Ptry + Pfx : Ptry;
+    const target = sec / den;                                 // current share on the latest statement
     const unit = calcState.unit, fx = calcState.fx;
     const pTryG = toTryG(calcState.price, unit, fx);
     const latest = latestPrice(unit);
@@ -1052,7 +1085,7 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
       b.setAttribute("aria-pressed", match ? "true" : "false");
     });
     cx.hint.textContent = `Latest statement, ${fmtDate(T(K.d))}: ${fT(K.tonnes)} valued at ${fPrice(K.usd_oz, "usdoz")} (${fPrice(K.try_per_g, "tryg")}) at the CBRT's USD/TRY rate of ${K.usdtry.toFixed(4)}. The rate on ${fmtDate(T(K.fx_latest.d))} is ${K.fx_latest.v.toFixed(4)}.`;
-    cx.note.textContent = `Assumptions: only the gold price changes. All ${fT(K.tonnes)} on the balance sheet, including gold held for banks and the Treasury, is revalued and total assets move by the same amount. Purchases are paid for with newly created lira, so total assets grow by the amount bought; sales shrink them. The target is the average gold share over the last ${AVG_WEEKS} weekly statements on the basis chosen under “Total assets”. Formula: purchases = gold value ÷ target share − total assets after revaluation. This is arithmetic on the balance sheet, not a forecast of CBRT policy.`;
+    cx.note.textContent = `Assumptions: only the gold price changes. All ${fT(K.tonnes)} of gold on the balance sheet, including gold held for banks and the Treasury, is revalued and total assets move by the same amount; securities are not revalued. Purchases and sales are TRY government bonds, paid for with newly created lira, so total assets grow by the amount bought and shrink by the amount sold. Foreign-currency securities stay as they are. The target is the share of ${sName} on the latest statement (${fmtDate(T(K.d))}), on the basis chosen under “Total assets”. Formula: purchases = current share ÷ (1 − current share) × change in the value of gold. This is arithmetic on the balance sheet, not a forecast of CBRT policy.`;
 
     cx.dl.replaceChildren();
     cx.warn.hidden = true;
@@ -1063,43 +1096,38 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
       return;
     }
     const gNew = (K.tonnes * 1e6 * pTryG) / 1e9;           // TRY bn
-    const denNew = den + (gNew - K.gold_bn);
-    const s0 = gNew / denNew;
-    const X = gNew / target - denNew;                         // > 0 buy, < 0 sell
-    const gBE = (den - K.gold_bn) / (1 / target - 1);         // gold value at which X = 0
-    const pBE = (gBE * 1e9) / (K.tonnes * 1e6);               // TRY per gram
-    const perStep = unit === "usdoz"
-      ? ((K.tonnes * 1e6) / OZ) * 100 * fx * (1 / target - 1) / 1e9
-      : (K.tonnes * 1e6 * 100 * (1 / target - 1)) / 1e9;
-    const P = K.portfolio_bn;
+    const denNew = den + (gNew - K.gold_bn);                  // total assets after revaluing gold
+    const s0 = sec / denNew;                                  // securities share before any purchase
+    const X = (target * denNew - sec) / (1 - target);         // > 0 buy, < 0 sell
+    const perStep = (unit === "usdoz" ? ((K.tonnes * 1e6) / OZ) * 100 * fx : K.tonnes * 1e6 * 100) / 1e9 * (target / (1 - target));
     const yr = DATA.asof.omo.slice(0, 4);
     const ytd = (DATA.annual.find((a) => a.year === yr) || { net: 0 }).net;
 
     if (Math.abs(X) < 0.05) {
       cx.verb.textContent = "No purchase or sale needed";
       cx.amount.textContent = "TRY 0 bn";
-      cx.sub.textContent = `At this price gold is already at its 12-month average of ${fPct(target * 100, 2)} of ${denLabel}.`;
+      cx.sub.textContent = `At this price ${sName} stay at their current ${fPct(target * 100, 2)} of ${denLabel}. Change the gold price to see the purchase or sale needed.`;
     } else if (X > 0) {
       cx.verb.textContent = "The CBRT would need to buy";
       cx.amount.textContent = fBn(X);
-      cx.sub.textContent = `of TRY government bonds, paid for with new lira, to bring gold from ${fPct(s0 * 100, 2)} down to its 12-month average of ${fPct(target * 100, 2)} of ${denLabel}.`;
+      cx.sub.textContent = `of TRY government bonds, paid for with new lira. The higher gold price enlarges the balance sheet and dilutes ${sName} to ${fPct(s0 * 100, 2)}; this purchase brings them back up to their current ${fPct(target * 100, 2)} of ${denLabel}.`;
     } else {
       cx.verb.textContent = "The CBRT would need to sell";
       cx.amount.textContent = fBn(-X);
-      cx.sub.textContent = `of TRY government bonds to lift gold from ${fPct(s0 * 100, 2)} to its 12-month average of ${fPct(target * 100, 2)} of ${denLabel}. At this price gold is below its average, so buying bonds would push the share further down.`;
+      cx.sub.textContent = `of TRY government bonds. The lower gold price shrinks the balance sheet and lifts ${sName} to ${fPct(s0 * 100, 2)}; this sale brings them back down to their current ${fPct(target * 100, 2)} of ${denLabel}.`;
     }
     const chg = (calcState.price / latest - 1) * 100;
     dlRow("Gold price", fPrice(calcState.price, unit), `${fSigned(chg, (v) => v.toFixed(1) + "%")} vs ${fmtDate(T(K.d))}`);
     dlRow("Gold holdings at this price", fBn(gNew), `now ${fBn(K.gold_bn)}`);
-    dlRow("Gold share before any purchase", fPct(s0 * 100, 2), `now ${fPct(shares[denom].gold[n], 2)}`);
-    dlRow("Target: 12-month average", fPct(target * 100, 2), `${fmtDate(sT[n - AVG_WEEKS + 1])} – ${fmtDate(lastT)}`);
-    dlRow("TRY bond portfolio after", fBn(Math.max(0, P + X)), `now ${fBn(P)}`);
-    dlRow("Break-even gold price", fPrice(fromTryG(pBE, unit, fx), unit), "no purchase or sale");
-    dlRow(`Each ${unit === "usdoz" ? "USD 100/oz" : "TRY 100/g"} changes the answer by`, fBn(perStep), "");
+    dlRow(denom === "gross" ? "Total assets at this price" : "Total assets excl. losses at this price", fBn(denNew), `now ${fBn(den)}`);
+    dlRow(`${SName}, share at this price before any purchase`, fPct(s0 * 100, 2), `now ${fPct(target * 100, 2)}`);
+    dlRow("Target: current share", fPct(target * 100, 2), fmtDate(T(K.d)));
+    dlRow("TRY bond portfolio after", fBn(Math.max(0, Ptry + X)), `now ${fBn(Ptry)}`);
+    dlRow(`Each ${unit === "usdoz" ? "USD 100/oz" : "TRY 100/g"} rise in gold means buying`, fBn(perStep), "a fall means selling as much");
     if (X > 0 && ytd > 0) dlRow(`Compared with purchases so far in ${yr}`, (X / ytd).toFixed(2) + "×", `of ${fBn(ytd)}`);
-    if (X < 0 && -X > P) {
+    if (X < 0 && -X > Ptry) {
       cx.warn.hidden = false;
-      cx.warn.textContent = `Selling the whole ${fBn(P)} portfolio would only lift gold to ${fPct((100 * gNew) / (denNew - P), 2)}. The 12-month average can't be reached through bond sales alone.`;
+      cx.warn.textContent = `Selling the whole ${fBn(Ptry)} TRY bond portfolio would only bring ${sName} down to ${fPct((100 * (sec - Ptry)) / (denNew - Ptry), 2)}; the rest are foreign-currency securities held as reserves. The current share can't be kept through bond sales alone.`;
     }
   }
 
@@ -1120,6 +1148,10 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     if (st === 0) calcState.fx = K.usdtry;
     calcState.price = latestPrice(calcState.unit) * (1 + st);
     setCalcInputs(); saveCalc(); calcRender();
+  });
+  cx.measure.addEventListener("change", () => {
+    calcState.measure = cx.measure.value === "all" ? "all" : "try";
+    saveCalc(); calcRender(); calcChart.render();
   });
   ce("calc-form").addEventListener("submit", (e) => e.preventDefault());
   ce("calc-open").addEventListener("click", () => {
