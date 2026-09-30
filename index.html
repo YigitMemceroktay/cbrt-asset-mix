@@ -267,7 +267,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
         <p>Altın fiyatı veya USD/TRY kurundaki değişimler, altın ve döviz cinsi varlıkların TL karşılığını değiştirerek Merkez Bankası bilançosunun büyüklüğünü etkiler. DİBS portföyü ise bu değişimden etkilenmez. Bu nedenle altın fiyatındaki bir artış bilançoyu büyütür ve DİBS'in bilanço içindeki payını azaltır; altın fiyatındaki bir düşüş ise bu payı artırır.</p>
         <p>Hesaplayıcı, girilen altın fiyatı ve kur varsayımı altında DİBS'in bilançodaki payını hedeflenen seviyeye getirmek için Merkez Bankası'nın alması veya satması gereken DİBS tutarını hesaplar. Hedef ağırlık başlangıçta mevcut pay olarak tanımlanmıştır ve kullanıcı tarafından değiştirilebilir.</p>
         <p>Örneğin, altın fiyatındaki %10'luk bir artış DİBS'in payını %3,12'den %3,01'e düşürmektedir. Payın yeniden %3,12 seviyesine getirilmesi için yaklaşık 17,5 mlr TL tutarında DİBS alımı gerekmektedir. Hesaplamada alımların yeni TL ihracıyla finanse edildiği, dolayısıyla bilançonun alım tutarı kadar büyüdüğü varsayılmıştır. Satım durumunda ise bilanço satılan tutar kadar küçülmektedir.</p>
-        <p>Senaryo tablosu, aynı hesaplamayı 4.000–4.500 USD/ons aralığındaki altın fiyatları ve %2,50–%4,50 aralığındaki hedef DİBS payları için topluca sunmaktadır. Pozitif değerler alımı, negatif değerler satımı ifade eder. Tabloda kullanılan kur, tablonun üzerindeki alandan değiştirilebilir.</p>
+        <p>Senaryo tablosu, aynı hesaplamayı 4.000–4.500 USD/ons aralığındaki altın fiyatları ve %3,00–%4,50 aralığındaki hedef DİBS payları için topluca sunmaktadır. Pozitif değerler alımı, negatif değerler satımı ifade eder. Tabloda kullanılan kur, tablonun üzerindeki alandan değiştirilebilir.</p>
         <p>Bu hesaplamalar bir tahmin niteliği taşımamakta olup Merkez Bankası'nın politika tercihlerine ilişkin bir öngörü içermemektedir; yalnızca bilanço üzerinde yapılan aritmetik bir hesaplamayı göstermektedir.</p>
       </div>
     </div>
@@ -279,16 +279,6 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
       <ul class="legend" id="b-legend"></ul>
       <div id="b-chart"></div>
       <details class="tbl" id="b-tbl"><summary>Veri tablosunu göster (haftalık değerler)</summary><div class="tbl-wrap"></div></details>
-    </div>
-  </section>
-
-  <section id="shares">
-    <h2>Son 12 Ayda Altın ve Menkul Kıymetlerin Aktiflerdeki Payı</h2>
-    <div class="panel">
-      <div class="chead"><h3 class="ctitle">Toplam aktiflerdeki pay<span class="cunit" id="a-unit">brüt toplam aktiflerin yüzdesi</span></h3></div>
-      <ul class="legend" id="a-legend"></ul>
-      <div id="a-chart"></div>
-      <details class="tbl" id="a-tbl"><summary>Veri tablosunu göster (haftalık değerler)</summary><div class="tbl-wrap"></div></details>
     </div>
   </section>
 
@@ -800,23 +790,6 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
   };
   const lastNonNull = (arr, i) => { for (let k = i; k >= 0; k--) if (arr[k] != null) return arr[k]; return null; };
 
-  // ---------------------------------------------------------------- A. shares of total assets
-  const A_SERIES = [
-    { key: "gold", label: "Altın", color: "--s-gold" },
-    { key: "domsec", label: "TL DİBS", color: "--s-domsec" },
-    { key: "fxsec", label: "Döviz cinsi menkul kıymetler", color: "--s-fxsec" },
-  ];
-  makeChart({
-    host: "a-chart", kind: "line", aria: "Altın, TL DİBS ve döviz cinsi menkul kıymetlerin TCMB toplam aktiflerindeki payını gösteren çizgi grafik",
-    height: (w) => (w < 520 ? 260 : 340),
-    series: A_SERIES,
-    data: () => ({ t: sT, v: shares[state.denom] }),
-    domain: () => clampDomain(sT[0], lastT),
-    tickFmt: (v) => "%" + fTick(v), valFmt: (v) => fPct(v),
-    extra: (i, tip) => tipExtra(tip, "Toplam aktif " + fBn(state.denom === "gross" ? shares.ta[i] : shares.ta[i] - (shares.acct[i] || 0))),
-    legend: (i1) => legend("a-legend", A_SERIES.map((s) => ({ ...s, line: true, value: fPct(lastNonNull(shares[state.denom][s.key], i1)) }))),
-  });
-
   // ---------------------------------------------------------------- B. composition
   const B_ALL = [
     { key: "gold", label: "Altın", color: "--s-gold" },
@@ -997,9 +970,6 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     return () => { if (det.open) build(); };
   };
   const refreshers = [
-    fillTable("a-tbl", ["Tarih", "Altın", "TL DİBS", "Döviz cinsi MK", "Toplam aktif"], () => windowRows(sT),
-      (i) => [fmtDate(sT[i]), fPct(shares[state.denom].gold[i]), fPct(shares[state.denom].domsec[i]), fPct(shares[state.denom].fxsec[i]),
-        fBn(state.denom === "gross" ? shares.ta[i] : shares.ta[i] - (shares.acct[i] || 0))]),
     fillTable("b-tbl", () => ["Tarih", ...bSeries().map((s) => s.label)], () => windowRows(cT),
       (i) => [fmtDate(cT[i]), ...bSeries().map((s) => fPct((compPct[state.denom] || buildComp(state.denom))[s.key][i]))]),
     fillTable("c1-tbl", ["Tarih", "Toplam", "Eşleşmeyen", "Zorunlu karşılık", "Diğer banka altını", "Hazine", "Yabancı bankalar"], () => windowRows(gT),
@@ -1027,7 +997,7 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     mxPanel: ce("matrix"), mxFx: ce("mx-fx"), mxTable: ce("mx-table"), mxNote: ce("mx-note"), mxUnit: ce("mx-unit"),
   };
   const MX_PRICES = [4000, 4100, 4200, 4300, 4400, 4500];             // gold, USD per ounce
-  const MX_WEIGHTS = [2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5];   // TRY government bond weight, % of assets
+  const MX_WEIGHTS = [3, 3.25, 3.5, 3.75, 4, 4.25, 4.5];   // TRY government bond weight, % of assets
   const MX_FX_DEFAULT = 51.375;
   // targets: null means "the current weight" on the chosen total-assets basis
   // the calculator targets TL DİBS only (measure stays "try"; the "all securities" option was removed)
@@ -1265,8 +1235,6 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
       const sub = document.createElement("div"); sub.className = "sub"; sub.textContent = k.sub;
       d.append(lab, val, del, sub); box.appendChild(d);
     }
-    const unitTxt = state.denom === "gross" ? "brüt toplam aktiflerin yüzdesi" : "zarar ve değerleme hariç toplam aktiflerin yüzdesi";
-    document.getElementById("a-unit").textContent = unitTxt;
   }
   {
     const a = DATA.asof, ul = document.getElementById("asof");
