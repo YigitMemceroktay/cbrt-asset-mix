@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TCMB Bilanço Çalışması</title>
+<title>TCMB DİBS Portföyü Çalışması</title>
 <meta name="description" content="Türkiye Cumhuriyet Merkez Bankası aktiflerinde altın ve menkul kıymetlerin payı, 1986–2026, doğrudan DİBS alımlarıyla birlikte.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -236,19 +236,9 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
 <body>
 <div class="page" lang="tr">
   <header>
-    <h1 id="headline">TCMB Bilanço Çalışması</h1>
+    <h1 id="headline">TCMB DİBS Portföyü Çalışması</h1>
     <ul class="asof" id="asof"></ul>
   </header>
-
-  <div class="filters" role="group" aria-label="Aşağıdaki tüm grafikler için filtreler">
-    <fieldset class="seg">
-      <legend>Toplam aktif</legend>
-      <div class="opts">
-        <input type="radio" name="denom" id="d-gross" value="gross"><label for="d-gross">Brüt</label>
-        <input type="radio" name="denom" id="d-core" value="core"><label for="d-core">Zarar ve değerleme hariç</label>
-      </div>
-    </fieldset>
-  </div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -261,15 +251,15 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--border
       </div>
       <div>
         <h3>Payların hesaplanması</h3>
-        <p>Bir kalemin payı, ilgili kalem tutarının toplam aktiflere oranlanmasıyla hesaplanmıştır. Merkez Bankası'nın geçmiş yıllar zararları bilançonun aktif tarafında yer almaktadır. Bu kalem gerçek bir varlık niteliği taşımadığından toplam aktifleri olduğundan yüksek göstermektedir. "Zarar ve değerleme hariç" seçeneği, bu kayıtları toplam aktiflerden çıkararak payların bankanın gerçek varlıklarına göre hesaplanmasını sağlar.</p>
+        <p>Bir kalemin payı, ilgili kalem tutarının toplam aktiflere oranlanmasıyla hesaplanmıştır. Merkez Bankası'nın geçmiş yıllar zararları bilançonun aktif tarafında yer almaktadır. Bu kalem gerçek bir varlık niteliği taşımadığından toplam aktifleri olduğundan yüksek göstermektedir. Bu nedenle çalışmada toplam aktifler, geçmiş yıllar zararları, dönem zararı ve değerleme hesabı çıkarılarak hesaplanmış; tüm paylar bankanın gerçek varlıklarına göre verilmiştir.</p>
         <p>Bilançodaki altının tamamı Merkez Bankası'nın kendi altını değildir. Bu altının bir kısmı, bankaların zorunlu karşılık olarak tuttuğu altın ile Hazine adına tutulan altındır. "Altın yükümlülükleriyle eşleşmeyen" kısım, bu altınlar düşüldükten sonra kalan miktarı ifade eder.</p>
       </div>
       <div class="wide">
         <h3>Bilanço içi hedef DİBS ağırlığı hesaplayıcısı</h3>
         <p>Altın fiyatı veya USD/TRY kurundaki değişimler, altın ve döviz cinsi varlıkların TL karşılığını değiştirerek Merkez Bankası bilançosunun büyüklüğünü etkiler. DİBS portföyü ise bu değişimden etkilenmez. Bu nedenle altın fiyatındaki bir artış bilançoyu büyütür ve DİBS'in bilanço içindeki payını azaltır; altın fiyatındaki bir düşüş ise bu payı artırır.</p>
         <p>Hesaplayıcı, girilen altın fiyatı ve kur varsayımı altında DİBS'in bilançodaki payını hedeflenen seviyeye getirmek için Merkez Bankası'nın alması veya satması gereken DİBS tutarını hesaplar. Hedef ağırlık başlangıçta mevcut pay olarak tanımlanmıştır ve kullanıcı tarafından değiştirilebilir.</p>
-        <p>Örneğin, altın fiyatındaki %10'luk bir artış DİBS'in payını %3,12'den %3,01'e düşürmektedir. Payın yeniden %3,12 seviyesine getirilmesi için yaklaşık 17,5 mlr TL tutarında DİBS alımı gerekmektedir. Hesaplamada alımların yeni TL ihracıyla finanse edildiği, dolayısıyla bilançonun alım tutarı kadar büyüdüğü varsayılmıştır. Satım durumunda ise bilanço satılan tutar kadar küçülmektedir.</p>
-        <p>"Yıl sonuna kadar itfa olacak DİBS'leri düş" seçeneği işaretlendiğinde, TCMB'nin doğrudan alımlarla edindiği ve yıl sonuna kadar vadesi dolacak DİBS'lerin nominal tutarı hem DİBS portföyünden hem de toplam aktiflerden düşülür. Böylece hesaplama, bu tahvillerin itfasından sonraki bilanço üzerinden yapılır. Bu tutar yalnızca açık piyasa ihalelerinde alınan tahvilleri kapsar.</p>
+        <p>Örneğin, itfa seçeneği kapalıyken altın fiyatındaki %10'luk bir artış DİBS'in payını %3,80'den %3,64'e düşürmektedir. Payın yeniden %3,80 seviyesine getirilmesi için yaklaşık 21,5 mlr TL tutarında DİBS alımı gerekmektedir. Hesaplamada alımların yeni TL ihracıyla finanse edildiği, dolayısıyla bilançonun alım tutarı kadar büyüdüğü varsayılmıştır. Satım durumunda ise bilanço satılan tutar kadar küçülmektedir.</p>
+        <p>Varsayılan olarak işaretli gelen "Yıl sonuna kadar itfa olacak DİBS'leri düş" seçeneğinde, TCMB'nin doğrudan alımlarla edindiği ve yıl sonuna kadar vadesi dolacak DİBS'lerin nominal tutarı hem DİBS portföyünden hem de toplam aktiflerden düşülür. Böylece hesaplama, bu tahvillerin itfasından sonraki bilanço üzerinden yapılır. Bu tutar yalnızca açık piyasa ihalelerinde alınan tahvilleri kapsar.</p>
         <p>Senaryo tablosu, aynı hesaplamayı 4.000–4.500 USD/ons aralığındaki altın fiyatları ve %3,00–%4,50 aralığındaki hedef DİBS payları için topluca sunmaktadır. Pozitif değerler alımı, negatif değerler satımı ifade eder. Tabloda kullanılan kur, tablonun üzerindeki alandan değiştirilebilir.</p>
         <p>Bu hesaplamalar bir tahmin niteliği taşımamakta olup Merkez Bankası'nın politika tercihlerine ilişkin bir öngörü içermemektedir; yalnızca bilanço üzerinde yapılan aritmetik bir hesaplamayı göstermektedir.</p>
       </div>
@@ -429,12 +419,8 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
   const fT = (v) => (v == null ? "–" : fNum(Math.round(v), 0) + " ton");
 
   // ---------------------------------------------------------------- state
-  // the page covers the last 12 months only; the one filter left is the total-assets basis
-  const state = { range: "1y", denom: "gross" };
-  try {
-    const s = JSON.parse(localStorage.getItem("cbrt-mix-state") || "null");
-    if (s && typeof s === "object" && ["gross", "core"].includes(s.denom)) state.denom = s.denom;
-  } catch (e) { /* storage unavailable */ }
+  // the page covers the last 12 months; total assets always exclude accumulated losses and revaluation entries
+  const state = { range: "1y", denom: "core" };
   const save = () => { try { localStorage.setItem("cbrt-mix-state", JSON.stringify(state)); } catch (e) { /* ignore */ } };
 
   // ---------------------------------------------------------------- data prep
@@ -893,12 +879,14 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     },
   });
   const D3_SERIES = [
-    { key: "gross", label: "Brüt toplam aktiflerdeki pay", color: "--s-domsec" },
+    { key: "gross", label: "Toplam aktiflerdeki pay", color: "--s-domsec" },
     { key: "analytic", label: "Analitik bilanço toplamındaki pay", color: "--s-alt" },
   ];
-  const d3v = { gross: W8.map((r) => r[2]), analytic: W8.map((r) => r[3]) };
+  // share of total assets excluding losses, matched to the analytic-balance-sheet weeks by date
+  const coreByT = new Map(sT.map((t, i) => [t, shares.core.domsec[i]]));
+  const d3v = { gross: wT.map((t) => (coreByT.has(t) ? coreByT.get(t) : null)), analytic: W8.map((r) => r[3]) };
   makeChart({
-    host: "d3-chart", kind: "line", aria: "TL DİBS'in brüt ve analitik toplam aktiflerdeki payını karşılaştıran çizgi grafik",
+    host: "d3-chart", kind: "line", aria: "TL DİBS'in toplam aktiflerdeki ve analitik bilanço toplamındaki payını karşılaştıran çizgi grafik",
     height: (w) => (w < 520 ? 220 : 240),
     series: D3_SERIES,
     data: () => ({ t: wT, v: d3v }),
@@ -983,8 +971,8 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
       (i) => [fmtDate(gT[i]), fT(G[i][6]), fT(G[i][1]), fT(G[i][2]), fT(G[i][3]), fT(G[i][4]), fT(G[i][5])]),
     fillTable("c2-tbl", ["Tarih", "Altın payı", "Altın, mlr USD", "Döviz, mlr USD"], () => windowRows(rT),
       (i) => [fmtDate(rT[i]), fPct(rShare[i]), fNum(R[i][1], 1), fNum(R[i][2], 1)]),
-    fillTable("d3-tbl", ["Tarih", "Portföy", "Brüt aktiflerdeki pay", "Analitik toplamdaki pay"], () => windowRows(wT),
-      (i) => [fmtDate(wT[i]), fBn(W8[i][1]), fPct(W8[i][2], 2), fPct(W8[i][3], 2)]),
+    fillTable("d3-tbl", ["Tarih", "Portföy", "Toplam aktiflerdeki pay", "Analitik toplamdaki pay"], () => windowRows(wT),
+      (i) => [fmtDate(wT[i]), fBn(W8[i][1]), fPct(d3v.gross[i], 2), fPct(W8[i][3], 2)]),
   ];
 
   // ---------------------------------------------------------------- gold price calculator (12-month view)
@@ -1008,7 +996,7 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
   const MX_FX_DEFAULT = 51.375;
   // targets: null means "the current weight" on the chosen total-assets basis
   // the calculator targets TL DİBS only (measure stays "try"; the "all securities" option was removed)
-  const calcState = { price: K.usd_oz, unit: "usdoz", fx: K.usdtry, measure: "try", tTry: null, tAll: null, mxFx: MX_FX_DEFAULT, mat: false };
+  const calcState = { price: K.usd_oz, unit: "usdoz", fx: K.usdtry, measure: "try", tTry: null, tAll: null, mxFx: MX_FX_DEFAULT, mat: true };
   // TL DİBS bought in outright purchases that mature by year-end; optionally taken off the portfolio and total assets
   const MAT = (K.maturing && K.maturing.total_bn) || 0;
   const matOff = () => (calcState.mat ? MAT : 0);
@@ -1028,9 +1016,9 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
   const fromTryG = (p, unit, fx) => (unit === "usdoz" ? (p / fx) * OZ : p);
   const fPrice = (p, unit) => fNum(Math.round(p), 0) + (unit === "usdoz" ? " USD/ons" : " TL/gram");
   const denFor = (denom) => (denom === "gross" ? K.ta_bn : K.ta_bn - K.acct_bn);
-  // "brüt toplam aktifler içinde" (in) and "brüt toplam aktiflerin" (of)
-  const denIn = (denom) => (denom === "gross" ? "brüt toplam aktifler içinde" : "zarar hariç toplam aktifler içinde");
-  const denOf = (denom) => (denom === "gross" ? "brüt toplam aktiflerin" : "zarar hariç toplam aktiflerin");
+  // "toplam aktifler içinde" (in) and "toplam aktiflerin" (of); total assets exclude losses
+  const denIn = () => "toplam aktifler içinde";
+  const denOf = () => "toplam aktiflerin";
   const OTHER_FX = K.fx_assets_bn - K.gold_fx_bn;   // non-gold foreign-currency assets, TRY bn at the statement rate
   const currentWeight = (denom, measure) => (100 * (K.portfolio_bn + (measure === "all" ? K.fxsec_bn : 0))) / denFor(denom);
   const targetWeight = (denom, measure) => {
@@ -1136,7 +1124,7 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     const pct1 = (v) => fSigned(v, (a) => "%" + fNum(a, 1));
     dlRow("Altın varlığı", fBn(sc.gold), `şu an ${fBn(K.gold_bn)}`);
     if (M) dlRow("Yıl sonuna kadar itfa olacak DİBS", "−" + fBn(M), "portföyden düşüldü");
-    dlRow(denom === "gross" ? "Toplam aktif" : "Toplam aktif (zarar hariç)", fBn(assets), `şu an ${fBn(den)}`);
+    dlRow("Toplam aktif", fBn(assets), `şu an ${fBn(den)}`);
     dlRow(`${SGen} ağırlığı, işlem öncesi`, fPct(s0 * 100, 2), `şu an ${fPct(nowPct, 2)}`);
     dlRow("Hedef ağırlık", fPct(tPct, 2), own ? "sizin belirlediğiniz" : "mevcut ağırlık");
     dlRow("İşlem sonrası TL DİBS portföyü", fBn(Math.max(0, PtryEff + X)), `şu an ${fBn(Ptry)}`);
@@ -1235,7 +1223,7 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
     const tiles = [
       { color: "--s-gold", lab: "Altının aktiflerdeki payı", val: fPct(sh.gold[n]), delta: pp(sh.gold[n], sh.gold[j]),
         sub: `${fBn(shares.goldBn[n])} · ${fT(gl[6])}` },
-      { color: "--s-domsec", lab: "TL DİBS'in aktiflerdeki payı", val: fPct(sh.domsec[n], 2), delta: pp(sh.domsec[n], sh.domsec[j], 2),
+      { color: "--s-domsec", lab: "TL DİBS'in aktiflerdeki payı", val: fPct(currentWeight(state.denom, "try"), 2), delta: pp(sh.domsec[n], sh.domsec[j], 2),
         sub: `Portföy ${fBn(shares.domBn[n])}` },
       { color: "--s-fxsec", lab: "Döviz cinsi menkul kıymetlerin aktiflerdeki payı", val: fPct(sh.fxsec[n], 2), delta: pp(sh.fxsec[n], sh.fxsec[j], 2),
         sub: `${fBn(shares.fxBn[n])} (yurt dışı muhabirlerde)` },
@@ -1268,10 +1256,6 @@ window.__DATA__ = {"asof":{"weekly":"2026-09-18","analytic":"2026-09-28","omo":"
 
   // ---------------------------------------------------------------- wiring
   const renderAll = () => { bCfg.series = bSeries(); kpis(); calcRender(); matrixRender(); charts.forEach((c) => c.render()); refreshers.forEach((f) => f()); };
-  document.querySelectorAll('input[name="denom"]').forEach((r) => {
-    r.checked = r.value === state.denom;
-    r.addEventListener("change", () => { state.denom = r.value; save(); renderAll(); });
-  });
   renderAll();
   let raf = 0, lastW = document.querySelector(".page").clientWidth;
   new ResizeObserver(() => {
